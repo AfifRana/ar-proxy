@@ -1,0 +1,10 @@
+{
+  "name": "ar-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local proxy for AgentRouter + Copilot Chat BYOK (no extension.js patching)",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  }
+}
