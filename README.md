@@ -11,9 +11,41 @@ This proxy server provides two critical fixes for AgentRouter integration with G
 
 ## Installation
 
+### Node.js
+
 ```bash
 npm install
 ```
+
+### Python (no Node.js required)
+
+The repository also includes a standard-library-only Python implementation, so no `pip install` is required.
+
+```bash
+python proxy.py
+```
+
+or:
+
+```bash
+python3 proxy.py
+```
+
+The Python implementation uses the same defaults as the Node.js proxy:
+
+- Listen address: `127.0.0.1:8317`
+- Upstream: `https://agentrouter.org`
+- AgentRouter User-Agent: `claude-cli/0.0.0 (external, cli) (node/v20.0.0)`
+- Malformed SSE frames are filtered before they reach Copilot
+
+For debugging:
+
+```bash
+python proxy.py --verbose
+python proxy.py --log
+```
+
+The Python implementation uses `read1()` for SSE responses so streamed tokens are forwarded as soon as they are available rather than waiting for a larger read buffer to fill.
 
 ## Usage
 
@@ -29,6 +61,12 @@ Or use Node directly:
 
 ```bash
 node proxy.js
+```
+
+Or use Python:
+
+```bash
+python proxy.py
 ```
 
 ### Windows (Minimized Window)
