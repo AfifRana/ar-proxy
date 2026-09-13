@@ -22,8 +22,17 @@ if /i "%AR_LANG%"=="node" (
 )
 if "%AR_LANG%"=="" set "AR_LANG=node"
 
+REM %* still reflects the original args after "shift", so rebuild the list by hand.
+set "ARGS="
+:collect_args
+if "%~1"=="" goto args_collected
+set "ARGS=%ARGS% %1"
+shift
+goto collect_args
+:args_collected
+
 if /i "%AR_LANG%"=="python" (
-    start "ar-proxy" /min python python\proxy.py %*
+    start "ar-proxy" /min python python\proxy.py %ARGS%
 ) else (
-    start "ar-proxy" /min node node\proxy.js %*
+    start "ar-proxy" /min node node\proxy.js %ARGS%
 )
