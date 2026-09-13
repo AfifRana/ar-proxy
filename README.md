@@ -9,72 +9,69 @@ This proxy server provides two critical fixes for AgentRouter integration with G
 1. **Forces AgentRouter User-Agent**: Preserves the correct User-Agent header that Copilot would otherwise strip or normalize.
 2. **Fixes malformed SSE chunks**: Drops malformed Server-Sent Events (SSE) chunks that crash the stream parser with "Cannot read properties of null (reading 'usage')" errors.
 
+## Project Layout
+
+```
+node/           Node.js implementation (proxy.js, package.json)
+python/         Python implementation (proxy.py, standard library only)
+start-proxy.cmd Windows launcher, picks the language to run
+```
+
 ## Installation
 
-### Node.js
+No separate install step is required to try the proxy — see [Quick Start](#quick-start) below. If you want to run the Node.js implementation directly (rather than through `start-proxy.cmd`), install its dependencies first:
 
 ```bash
+cd node
 npm install
 ```
 
-### Python (no Node.js required)
+The Python implementation only uses the standard library, so there's nothing to install for it.
 
-The repository also includes a standard-library-only Python implementation, so no `pip install` is required.
-
-```bash
-python proxy.py
-```
-
-or:
-
-```bash
-python3 proxy.py
-```
-
-The Python implementation uses the same defaults as the Node.js proxy:
+Both implementations share the same defaults:
 
 - Listen address: `127.0.0.1:8317`
 - Upstream: `https://agentrouter.org`
 - AgentRouter User-Agent: `claude-cli/0.0.0 (external, cli) (node/v20.0.0)`
 - Malformed SSE frames are filtered before they reach Copilot
 
-For debugging:
-
-```bash
-python proxy.py --verbose
-python proxy.py --log
-```
-
-The Python implementation uses `read1()` for SSE responses so streamed tokens are forwarded as soon as they are available rather than waiting for a larger read buffer to fill.
-
 ## Usage
 
 ### Quick Start
 
-Run the proxy in the foreground:
-
-```bash
-npm start
-```
-
-Or use Node directly:
-
-```bash
-node proxy.js
-```
-
-Or use Python:
-
-```bash
-python proxy.py
-```
-
-### Windows (Minimized Window)
-
-Run the included batch script to start the proxy in a minimized window:
+Run the included launcher, which starts the proxy in a minimized window:
 
 ```bash
 start-proxy.cmd
+```
+
+Pick an implementation explicitly, or forward flags to it:
+
+```bash
+start-proxy.cmd node
+start-proxy.cmd python
+start-proxy.cmd python --verbose
+```
+
+It defaults to Node.js when no implementation is given. Set `AR_PROXY_LANG=python` (or `node`) to change the default without passing an argument each time.
+
+### Run a specific implementation directly
+
+Use this to run one implementation in the foreground, e.g. for development or on macOS/Linux where `start-proxy.cmd` doesn't apply.
+
+**Node.js:**
+
+```bash
+cd node
+npm start
+# or: node proxy.js
+```
+
+**Python:**
+
+```bash
+python python/proxy.py
+# or: python3 python/proxy.py
 ```
 
 ## Configuration
@@ -97,26 +94,32 @@ Configure the proxy using environment variables:
 **Start on port 8320 with verbose logging:**
 
 ```bash
-AR_PROXY_PORT=8320 AR_VERBOSE=1 npm start
+AR_PROXY_PORT=8320 AR_VERBOSE=1 node node/proxy.js
+AR_PROXY_PORT=8320 AR_VERBOSE=1 python python/proxy.py
 ```
 
 **Log all traffic to a file:**
 
 ```bash
-AR_LOG_FILE=traffic.log npm start
+node node/proxy.js --log-file=traffic.log
+python python/proxy.py --log-file=traffic.log
 ```
 
 **Custom upstream server:**
 
 ```bash
-AR_UPSTREAM=https://custom-agentrouter.example.com npm start
+AR_UPSTREAM=https://custom-agentrouter.example.com node node/proxy.js
+AR_UPSTREAM=https://custom-agentrouter.example.com python python/proxy.py
 ```
 
-**Windows batch with arguments:**
+**Windows launcher with arguments:**
 
 ```bash
-start-proxy.cmd --log --verbose
+start-proxy.cmd node --log --verbose
+start-proxy.cmd python --verbose
 ```
+
+(The same environment variables apply when running via `npm start` from the `node/` folder.)
 
 ## How It Works
 
@@ -136,9 +139,8 @@ The proxy acts as a man-in-the-middle between Copilot Chat and AgentRouter:
 Shows basic request/response information:
 
 ```bash
-node proxy.js --verbose
-# or
-AR_VERBOSE=1 npm start
+node node/proxy.js --verbose
+python python/proxy.py --verbose
 ```
 
 ### Full Traffic Logging
@@ -146,15 +148,18 @@ AR_VERBOSE=1 npm start
 Logs complete request and response details (headers and bodies):
 
 ```bash
-node proxy.js --log
-# or
-node proxy.js --log-file=traffic.log
+node node/proxy.js --log
+python python/proxy.py --log
+# or write to a file
+node node/proxy.js --log-file=traffic.log
+python python/proxy.py --log-file=traffic.log
 ```
 
 Limit logged body size:
 
 ```bash
-node proxy.js --log --log-body-limit=16384
+node node/proxy.js --log --log-body-limit=16384
+python python/proxy.py --log --log-body-limit=16384
 ```
 
 ## License
